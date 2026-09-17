@@ -3,7 +3,7 @@ services:
     image: postgres:18
     container_name: postgres_db
     environment:
-      POSTGRES_DB: postgres_java
+      POSTGRES_DB: pet_hotel
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
