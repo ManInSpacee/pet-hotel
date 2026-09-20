@@ -17,7 +17,6 @@ CREATE TABLE pets (
     name VARCHAR(20) NOT NULL,
     species VARCHAR(20) NOT NULL CHECK ( species in ('DOG', 'CAT', 'BIRD', 'RODENT') ),
     size VARCHAR(20) NOT NULL CHECK ( size IN ('SMALL', 'MEDIUM', 'LARGE') ),
-    birth_date DATE
 );
 
 CREATE TABLE bookings (
