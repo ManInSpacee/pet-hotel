@@ -16,7 +16,7 @@ CREATE TABLE pets (
     owner_id BIGINT NOT NULL CONSTRAINT fk_pets_owner REFERENCES owners(id),
     name VARCHAR(20) NOT NULL,
     species VARCHAR(20) NOT NULL CHECK ( species in ('DOG', 'CAT', 'BIRD', 'RODENT') ),
-    size VARCHAR(20) NOT NULL CHECK ( size IN ('SMALL', 'MEDIUM', 'LARGE') ),
+    size VARCHAR(20) NOT NULL CHECK ( size IN ('SMALL', 'MEDIUM', 'LARGE') )
 );
 
 CREATE TABLE bookings (
