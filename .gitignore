@@ -1,3 +1,4 @@
+CONTROL_WORK_1.md
 pet_hotel/target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
