@@ -16,7 +16,7 @@ public class Enclosure {
 
     @Override
     public String toString() {
-        return id + ": " + number + " " + size;
+        return "[ ID: " + id + ", номер: " + number + ", размер: " + size + "]";
     }
 
     public boolean canHost(EnclosureSize petSize) {
