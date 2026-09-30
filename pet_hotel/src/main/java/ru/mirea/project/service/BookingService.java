@@ -8,6 +8,7 @@ import ru.mirea.project.repository.PetRepository;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -94,4 +95,46 @@ public class BookingService {
         return bookingRepo.save(new Booking (petId, enclosureId, start, end));
     }
 
+    public Booking getById(Long bookingId) {
+        return bookingRepo.findById(bookingId).orElseThrow(() -> new BusinessRuleException("Бронирование не найдено"));
+    }
+
+    public List<Booking> getAll() {
+        return bookingRepo.findAll();
+    }
+
+    public void delete(Long bookingId) {
+        getById(bookingId);
+        bookingRepo.deleteById(bookingId);
+    }
+
+    // Поиск
+    public List<Booking> findByOwner(Long ownerId) {
+        return bookingRepo.findByOwnerId(ownerId);
+    }
+
+    // Фильтры
+    public List<Booking> filterByStatus(BookingStatus status) {
+        return bookingRepo.findByStatus(status);
+    }
+
+    public List<Booking> filterByDateRange(LocalDate from, LocalDate to) {
+        if (to.isBefore(from)) {
+            throw new BusinessRuleException("Конец периода раньше начала");
+        }
+        return bookingRepo.findByDateRange(from, to);
+    }
+
+    // Сортировки
+    public List<Booking> sortedByStartDate() {
+        return bookingRepo.findAll().stream()
+                .sorted(Comparator.comparing(Booking::getStartDate))
+                .toList();
+    }
+
+    public List<Booking> sortedByCreatedAtNewestFirst() {
+        return bookingRepo.findAll().stream()
+                .sorted(Comparator.comparing(Booking::getCreatedAt).reversed())
+                .toList();
+    }
 }

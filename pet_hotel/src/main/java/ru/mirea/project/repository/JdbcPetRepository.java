@@ -49,9 +49,7 @@ public class JdbcPetRepository implements PetRepository {
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) {
                     Long id = keys.getLong(1);
-                    Pet pet = new Pet(id, entity.getOwnerId(), entity.getName(), entity.getSpecies(), entity.getSize());
-                    System.out.println("Сохранен питомец: " + pet);
-                    return pet;
+                    return new Pet(id, entity.getOwnerId(), entity.getName(), entity.getSpecies(), entity.getSize());
                 }
             }
             throw new SQLException("База не вернула сгенерированный id");

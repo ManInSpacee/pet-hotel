@@ -39,3 +39,5 @@ build/
 
 ### Mac OS ###
 .DS_Store
+# Excel-выгрузки из меню
+pet_hotel/db_snapshots/
