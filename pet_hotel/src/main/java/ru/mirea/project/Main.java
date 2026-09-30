@@ -12,8 +12,6 @@ public class Main {
     public static void main(String[] args) {
 
         System.out.println("pet-hotel");
-
-
         //        Это просто подключение к базе данных, чтобы проверить, что она работает
         try (Connection conn = DatabaseManager.getConnection()) {
             System.out.println("подключено к " + conn.getCatalog());
@@ -25,9 +23,9 @@ public class Main {
         EnclosureRepository repository = new JdbcEnclosureRepository();
 
         //      Создание вольеров
-        System.out.println("Создание вольера: " + repository.save(new ru.mirea.project.model.Enclosure(null, 1, EnclosureSize.SMALL)));
-        System.out.println("Создание вольера: " + repository.save(new ru.mirea.project.model.Enclosure(null, 2, EnclosureSize.MEDIUM)));
-        System.out.println("Создание вольера: " + repository.save(new ru.mirea.project.model.Enclosure(null, 3, EnclosureSize.LARGE)));
+        //  System.out.println("Создание вольера: " + repository.save(new ru.mirea.project.model.Enclosure(null, 1, EnclosureSize.SMALL)));
+       // System.out.println("Создание вольера: " + repository.save(new ru.mirea.project.model.Enclosure(null, 2, EnclosureSize.MEDIUM)));
+       // System.out.println("Создание вольера: " + repository.save(new ru.mirea.project.model.Enclosure(null, 3, EnclosureSize.LARGE)));
 
         //      Отображение всех вольеров
         System.out.println("Все вольеры:" + repository.findAll());
