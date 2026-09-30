@@ -10,7 +10,6 @@ import ru.mirea.project.util.DatabaseManager;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -104,7 +103,6 @@ public class ConsoleMenu {
         this.statisticsService = statisticsService;
     }
 
-    // ===================== Чтение ввода =====================
 
     private String readString(String prompt) {
         System.out.print(prompt);
@@ -144,16 +142,36 @@ public class ConsoleMenu {
         }
     }
 
-    // Один метод на все enum: в values передаётся Species.values(), EnclosureSize.values() и т.д.
-    private <E extends Enum<E>> E readEnum(String prompt, E[] values) {
+    private EnclosureSize readSize(String prompt) {
         while (true) {
-            String input = readString(prompt + Arrays.toString(values) + ": ");
-            for (E value : values) {
-                if (value.name().equalsIgnoreCase(input.trim())) {
-                    return value;
-                }
+            String input = readString(prompt + "[SMALL, MEDIUM, LARGE]: ");
+            try {
+                return EnclosureSize.valueOf(input.trim().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                System.out.println("Ошибка: выберите одно из значений списка");
             }
-            System.out.println("Ошибка: выберите одно из значений списка");
+        }
+    }
+
+    private Species readSpecies(String prompt) {
+        while (true) {
+            String input = readString(prompt + "[CAT, DOG, RODENT, BIRD]: ");
+            try {
+                return Species.valueOf(input.trim().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                System.out.println("Ошибка: выберите одно из значений списка");
+            }
+        }
+    }
+
+    private BookingStatus readStatus(String prompt) {
+        while (true) {
+            String input = readString(prompt + "[PENDING, ACCEPTED, DENIED, CANCELLED, COMPLETED]: ");
+            try {
+                return BookingStatus.valueOf(input.trim().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                System.out.println("Ошибка: выберите одно из значений списка");
+            }
         }
     }
 
@@ -177,7 +195,6 @@ public class ConsoleMenu {
         items.forEach(System.out::println);
     }
 
-    // ===================== Главное меню =====================
 
     public void run() {
         while (true) {
@@ -205,7 +222,6 @@ public class ConsoleMenu {
         }
     }
 
-    // ===================== Владельцы =====================
 
     private void ownersMenu() {
         while (true) {
@@ -269,7 +285,6 @@ public class ConsoleMenu {
         }
     }
 
-    // ===================== Питомцы =====================
 
     private void petsMenu() {
         while (true) {
@@ -291,8 +306,8 @@ public class ConsoleMenu {
     private void addPet() {
         Long ownerId = readLong("ID владельца: ");
         String name = readString("Имя питомца: ");
-        Species species = readEnum("Вид ", Species.values());
-        EnclosureSize size = readEnum("Размер ", EnclosureSize.values());
+        Species species = readSpecies("Вид ");
+        EnclosureSize size = readSize("Размер ");
         try {
             System.out.println("Создан: " + petService.create(ownerId, name, species, size));
         } catch (BusinessRuleException e) {
@@ -319,7 +334,6 @@ public class ConsoleMenu {
         }
     }
 
-    // ===================== Вольеры =====================
 
     private void enclosuresMenu() {
         while (true) {
@@ -340,7 +354,7 @@ public class ConsoleMenu {
 
     private void addEnclosure() {
         int number = readInt("Номер вольера: ");
-        EnclosureSize size = readEnum("Размер ", EnclosureSize.values());
+        EnclosureSize size = readSize("Размер ");
         try {
             System.out.println("Создан: " + enclosureService.create(number, size));
         } catch (BusinessRuleException e) {
@@ -351,7 +365,7 @@ public class ConsoleMenu {
     private void editEnclosure() {
         Long id = readLong("ID вольера: ");
         int number = readInt("Новый номер: ");
-        EnclosureSize size = readEnum("Новый размер ", EnclosureSize.values());
+        EnclosureSize size = readSize("Новый размер ");
         try {
             System.out.println("Обновлено: " + enclosureService.update(id, number, size));
         } catch (BusinessRuleException e) {
@@ -369,7 +383,6 @@ public class ConsoleMenu {
         }
     }
 
-    // ===================== Бронирования =====================
 
     private void bookingsMenu() {
         while (true) {
@@ -392,7 +405,6 @@ public class ConsoleMenu {
         }
     }
 
-    // Сценарий из проектирования: питомец и даты → свободные вольеры → выбор → create
     private void createBooking() {
         Long petId = readLong("ID питомца: ");
         LocalDate start = readDate("Дата заезда (ГГГГ-ММ-ДД): ");
@@ -412,8 +424,6 @@ public class ConsoleMenu {
         }
     }
 
-    // Пункты 3–7 устроены одинаково: спросить ID → вызвать метод сервиса → показать бронь.
-    // Отличается только метод, поэтому он передаётся параметром — как проверка в readValid
     private void runWithBookingId(Function<Long, Booking> action) {
         Long id = readLong("ID бронирования: ");
         try {
@@ -433,7 +443,6 @@ public class ConsoleMenu {
         }
     }
 
-    // ===================== Поиск, фильтры, сортировка =====================
 
     private void searchMenu() {
         System.out.println(SEARCH_MENU_TEXT);
@@ -456,7 +465,7 @@ public class ConsoleMenu {
                 case 0 -> {
                     return;
                 }
-                case 1 -> printList(bookingService.filterByStatus(readEnum("Статус ", BookingStatus.values())),
+                case 1 -> printList(bookingService.filterByStatus(readStatus("Статус ")),
                         "Ничего не найдено");
                 case 2 -> printList(bookingService.filterByDateRange(readDate("С (ГГГГ-ММ-ДД): "), readDate("По (ГГГГ-ММ-ДД): ")),
                         "Ничего не найдено");
@@ -480,7 +489,6 @@ public class ConsoleMenu {
         }
     }
 
-    // ===================== Экспорт =====================
 
     private void exportToExcel() {
         try {
@@ -491,7 +499,6 @@ public class ConsoleMenu {
         }
     }
 
-    // ===================== Статистика =====================
 
     private void showStatistics() {
         System.out.println("=== Статистика ===");
