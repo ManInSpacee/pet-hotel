@@ -19,7 +19,6 @@ public class JdbcOwnerRepository implements OwnerRepository {
     private static final String FIND_BY_PHONE = "SELECT id, login, full_name, phone FROM owners WHERE phone = ?";
     private static final String FIND_BY_LOGIN = "SELECT id, login, full_name, phone FROM owners WHERE login = ?";
 
-    // метод сохранения оунера в базу
     @Override
     public Owner save(Owner entity){
         try (Connection conn = DatabaseManager.getConnection(); PreparedStatement ps = conn.prepareStatement(SAVE, PreparedStatement.RETURN_GENERATED_KEYS);){

@@ -78,7 +78,6 @@ public class PetService {
         return petRepo.findAll();
     }
 
-    // Поиск по части имени, без учёта регистра: "бар" найдёт "Барсик"
     public List<Pet> searchByName(String part) {
         String lower = part.toLowerCase();
         return petRepo.findAll().stream()

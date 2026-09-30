@@ -26,7 +26,6 @@ public final class DatabaseExcelDump {
     }
 
     public static void main(String[] args) throws Exception {
-        // Параметры подключения: сначала аргументы запуска, затем переменные среды, затем значения по умолчанию.
         String url = argumentOrEnvironment(args, 0, "DB_URL", "jdbc:postgresql://localhost:5437/pet_hotel");
         String user = argumentOrEnvironment(args, 1, "DB_USER", "postgres");
         String password = argumentOrEnvironment(args, 2, "DB_PASSWORD", "postgres");
@@ -34,10 +33,8 @@ public final class DatabaseExcelDump {
         System.out.println("Excel snapshot created: " + outputFile);
     }
 
-    // Вызывается и из main (run.bat), и из консольного меню. Возвращает путь к созданному файлу
     public static Path export(String url, String user, String password) throws Exception {
 
-        // Папку можно переопределить для подключаемого модуля; по умолчанию это db_snapshots.
         Path outputDirectory = Path.of(System.getProperty("db.snapshot.directory", "db_snapshots"))
                 .toAbsolutePath().normalize();
 
@@ -46,7 +43,6 @@ public final class DatabaseExcelDump {
                 + LocalDateTime.now().format(FILE_TIMESTAMP) + ".xlsx");
 
         try (Connection connection = DriverManager.getConnection(url, user, password)) {
-            // Repeatable read гарантирует, что все листы отражают одно состояние базы.
             connection.setReadOnly(true);
             connection.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
             connection.setAutoCommit(false);
@@ -69,7 +65,6 @@ public final class DatabaseExcelDump {
     }
 
     private static void exportTable(Connection connection, XSSFWorkbook workbook, String table) throws Exception {
-        // Каждая таблица выгружается на отдельный лист; текстовые значения сохраняются в Unicode.
         Sheet sheet = workbook.createSheet(table);
         try (Statement statement = connection.createStatement();
              ResultSet result = statement.executeQuery("SELECT * FROM " + table + " ORDER BY id")) {
