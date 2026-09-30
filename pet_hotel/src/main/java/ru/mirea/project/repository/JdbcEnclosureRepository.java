@@ -34,9 +34,7 @@ public class JdbcEnclosureRepository implements EnclosureRepository {
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) {
                     Long id = keys.getLong(1);
-                    Enclosure enclosure = new Enclosure(id, entity.getNumber(), entity.getSize());
-                    System.out.println("Сохранен вольер: " + enclosure);
-                    return enclosure;
+                    return new Enclosure(id, entity.getNumber(), entity.getSize());
                 }
             }
             throw new SQLException("База не вернула сгенерированный id");
@@ -53,6 +51,7 @@ public class JdbcEnclosureRepository implements EnclosureRepository {
         }
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement ps = conn.prepareStatement(UPDATE);) {
+
             ps.setInt(1, entity.getNumber());
             ps.setString(2, entity.getSize().name());
             ps.setLong(3, entity.getId());
