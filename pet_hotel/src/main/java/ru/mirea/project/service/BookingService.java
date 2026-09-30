@@ -114,12 +114,10 @@ public class BookingService {
         bookingRepo.deleteById(bookingId);
     }
 
-    // Поиск
     public List<Booking> findByOwner(Long ownerId) {
         return bookingRepo.findByOwnerId(ownerId);
     }
 
-    // Фильтры
     public List<Booking> filterByStatus(BookingStatus status) {
         return bookingRepo.findByStatus(status);
     }
@@ -131,7 +129,6 @@ public class BookingService {
         return bookingRepo.findByDateRange(from, to);
     }
 
-    // Сортировки
     public List<Booking> sortedByStartDate() {
         return bookingRepo.findAll().stream()
                 .sorted(Comparator.comparing(Booking::getStartDate))

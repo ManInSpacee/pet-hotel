@@ -26,7 +26,6 @@ public class StatisticsService {
         this.bookingRepo = bookingRepo;
     }
 
-    // Название показателя → значение. LinkedHashMap сохраняет порядок добавления
     public Map<String, Long> collect() {
         List<Booking> bookings = bookingRepo.findAll();
         LocalDate today = LocalDate.now();
@@ -39,7 +38,6 @@ public class StatisticsService {
         for (BookingStatus status : BookingStatus.values()) {
             stats.put("  в статусе " + status, countByStatus(bookings, status));
         }
-        // «Сейчас в гостинице» не хранится, а считается по датам — как решили при проектировании
         stats.put("Сейчас в гостинице", bookings.stream()
                 .filter(b -> b.getStatus() == BookingStatus.ACCEPTED)
                 .filter(b -> !today.isBefore(b.getStartDate()) && today.isBefore(b.getEndDate()))
