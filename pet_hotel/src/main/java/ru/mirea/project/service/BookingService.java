@@ -26,6 +26,12 @@ public class BookingService {
         this.petRepo = petRepo;
     }
     private void validateDates(LocalDate start, LocalDate end) {
+        if (start == null || end == null) {
+            throw new BusinessRuleException("Даты бронирования не могут быть пустыми");
+        }
+        if (end.isBefore(start)) {
+            throw new BusinessRuleException("Дата окончания не может быть раньше даты начала");
+        }
         if (start.isBefore(LocalDate.now())) {
             throw new BusinessRuleException("Дата начала не может быть в прошлом");
         }

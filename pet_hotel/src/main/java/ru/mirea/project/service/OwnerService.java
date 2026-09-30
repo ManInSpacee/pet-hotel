@@ -20,8 +20,9 @@ public class OwnerService {
         if (login == null || login.isBlank()) {
             throw new BusinessRuleException("Логин не может быть пустым");
         }
-        if (login.length() > 20) {
-            throw new BusinessRuleException("Логин не может быть длиннее 20 символов");
+        if (!login.matches("\\p{L}{1,12}")) {
+            throw new BusinessRuleException(
+                    "Логин должен содержать только буквы без пробелов и быть не длиннее 12 символов");
         }
     }
 
@@ -29,8 +30,16 @@ public class OwnerService {
         if (fullName == null || fullName.isBlank()) {
             throw new BusinessRuleException("Имя владельца не может быть пустым");
         }
+        if (fullName.length() < 10) {
+            throw new BusinessRuleException(
+                    "Имя владельца должно содержать минимум 10 символов");
+        }
         if (fullName.length() > 50) {
             throw new BusinessRuleException("Имя не может быть длиннее 50 символов");
+        }
+        if (!fullName.matches("\\p{L}+(?: \\p{L}+)*")) {
+            throw new BusinessRuleException(
+                    "Имя владельца должно содержать только буквы и пробелы между словами");
         }
     }
 
@@ -38,8 +47,9 @@ public class OwnerService {
         if (phone == null || phone.isBlank()) {
             throw new BusinessRuleException("Телефон не может быть пустым");
         }
-        if (phone.length() > 20) {
-            throw new BusinessRuleException("Телефон не может быть длиннее 20 символов");
+        if (!phone.matches("\\+?[0-9]{11,20}")) {
+            throw new BusinessRuleException(
+                    "Телефон должен содержать от 11 до 20 цифр, знак + допускается только в начале");
         }
     }
 

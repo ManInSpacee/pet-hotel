@@ -31,6 +31,9 @@ public class PetService {
         if (name.length() > 20) {
             throw new BusinessRuleException("Имя питомца не может быть длиннее 20 символов");
         }
+        if (!name.matches("\\p{L}+")) {
+            throw new BusinessRuleException("Имя питомца должно содержать только буквы");
+        }
         if (species == null) {
             throw new BusinessRuleException("Вид питомца не может быть пустым");
         }
