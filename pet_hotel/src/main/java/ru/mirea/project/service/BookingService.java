@@ -12,12 +12,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class BookingService {
+
     private final BookingRepository bookingRepo;
     private final EnclosureRepository enclosureRepo;
     private final PetRepository petRepo;
     private static final int MIN_DAYS = 2;
     private static final int MAX_DAYS = 30;
 
+    public BookingService(BookingRepository bookingRepo, EnclosureRepository enclosureRepo, PetRepository petRepo) {
+        this.bookingRepo = bookingRepo;
+        this.enclosureRepo = enclosureRepo;
+        this.petRepo = petRepo;
+    }
     private void validateDates(LocalDate start, LocalDate end) {
         if (start.isBefore(LocalDate.now())) {
             throw new BusinessRuleException("Дата начала не может быть в прошлом");
@@ -30,11 +36,6 @@ public class BookingService {
         }
     }
 
-    public BookingService(BookingRepository bookingRepo, EnclosureRepository enclosureRepo, PetRepository petRepo) {
-        this.bookingRepo = bookingRepo;
-        this.enclosureRepo = enclosureRepo;
-        this.petRepo = petRepo;
-    }
 
     public Booking accept(Long bookingId) {
         return changeStatus(bookingId, BookingStatus.ACCEPTED);
