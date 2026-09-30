@@ -29,7 +29,8 @@ public class Booking {
 
     @Override
     public String toString() {
-        return id + ": " + petId + " " + enclosureId + " " + startDate + " " + endDate + " " + status + " " + createdAt;
+        return "[ ID: " + id + ", питомец: " + petId + ", вольер: " + enclosureId
+                + ", " + startDate + " → " + endDate + ", " + status + "]";
     }
 
     public long durationDays() {
