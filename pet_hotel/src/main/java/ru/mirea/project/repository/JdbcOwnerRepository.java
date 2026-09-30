@@ -17,6 +17,7 @@ public class JdbcOwnerRepository implements OwnerRepository {
     private static final String DELETE_BY_ID = "DELETE FROM owners WHERE id = ?";
     private static final String UPDATE = "UPDATE owners SET login = ?, full_name = ?, phone = ? WHERE id = ?";
     private static final String FIND_BY_PHONE = "SELECT id, login, full_name, phone FROM owners WHERE phone = ?";
+    private static final String FIND_BY_LOGIN = "SELECT id, login, full_name, phone FROM owners WHERE login = ?";
 
     // метод сохранения оунера в базу
     @Override
@@ -41,6 +42,21 @@ public class JdbcOwnerRepository implements OwnerRepository {
         } catch (SQLException e){
             throw new DataAccessException("Ошибка сохранения владельца в базу данных: " + e.getMessage(), e);
         }
+    }
+
+    @Override
+    public Optional<Owner> findByLogin(String login) {
+        try (Connection conn = DatabaseManager.getConnection(); PreparedStatement ps = conn.prepareStatement(FIND_BY_LOGIN)) {
+            ps.setString(1, login);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapRow(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Ошибка получения владельца по логину: " + e.getMessage(), e);
+        }
+        return Optional.empty();
     }
 
     @Override

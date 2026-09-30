@@ -28,6 +28,7 @@ public class JdbcBookingRepository implements BookingRepository {
     private final static String FIND_BY_STATUS = "SELECT id, pet_id, enclosure_id, start_date, end_date, status, created_at FROM bookings WHERE status = ?";
     private final static String FIND_BY_DATE_RANGE = "SELECT id, pet_id, enclosure_id, start_date, end_date, status, created_at FROM bookings WHERE end_date >= ? AND start_date <= ?";
     private final static String EXISTS_BY_ENCLOSURE_ID = "SELECT EXISTS (SELECT 1 FROM bookings WHERE enclosure_id = ?)";
+    private final static String EXISTS_BY_PET_ID = "SELECT EXISTS (SELECT 1 FROM bookings WHERE pet_id = ?)";
 
     @Override
     public List<Booking> findByOwnerId(Long ownerId) {
@@ -166,6 +167,21 @@ public class JdbcBookingRepository implements BookingRepository {
             throw new DataAccessException("Не удалось найти бронирования: " + e.getMessage(), e);
         }
         return bookings;
+    }
+
+    @Override
+    public boolean existsByPetId(Long petId) {
+        try (Connection conn = DatabaseManager.getConnection(); PreparedStatement ps = conn.prepareStatement(EXISTS_BY_PET_ID)) {
+            ps.setLong(1, petId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getBoolean(1);
+                }
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Ошибка при проверке бронирований питомца: " + e.getMessage(), e);
+        }
+        return false;
     }
 
     @Override
