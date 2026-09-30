@@ -16,30 +16,37 @@ public class OwnerService {
         this.bookingRepo = bookingRepo;
     }
 
-    private void validateOwnerData(String login, String fullName, String phone) {
+    public void validateLogin(String login) {
         if (login == null || login.isBlank()) {
             throw new BusinessRuleException("Логин не может быть пустым");
         }
-
-        if (fullName == null || fullName.isBlank()) {
-            throw new BusinessRuleException("Имя владельца не может быть пустым");
-        }
-
-        if (phone == null || phone.isBlank()) {
-            throw new BusinessRuleException("Телефон не может быть пустым");
-        }
-
         if (login.length() > 20) {
             throw new BusinessRuleException("Логин не может быть длиннее 20 символов");
         }
+    }
 
+    public void validateFullName(String fullName) {
+        if (fullName == null || fullName.isBlank()) {
+            throw new BusinessRuleException("Имя владельца не может быть пустым");
+        }
         if (fullName.length() > 50) {
             throw new BusinessRuleException("Имя не может быть длиннее 50 символов");
         }
+    }
 
+    public void validatePhone(String phone) {
+        if (phone == null || phone.isBlank()) {
+            throw new BusinessRuleException("Телефон не может быть пустым");
+        }
         if (phone.length() > 20) {
             throw new BusinessRuleException("Телефон не может быть длиннее 20 символов");
         }
+    }
+
+    private void validateOwnerData(String login, String fullName, String phone) {
+        validateLogin(login);
+        validateFullName(fullName);
+        validatePhone(phone);
     }
 
     public Owner create(String login, String fullName, String phone) {

@@ -33,9 +33,7 @@ public class JdbcOwnerRepository implements OwnerRepository {
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()){
                     Long id = keys.getLong(1);
-                    Owner owner = new Owner(id, entity.getLogin(), entity.getFullName(), entity.getPhone());
-                    System.out.println("Сохранен владелец: " + owner);
-                    return  owner;
+                    return new Owner(id, entity.getLogin(), entity.getFullName(), entity.getPhone());
                 }
             }
             throw new SQLException("База не вернула сгенерированный id");
