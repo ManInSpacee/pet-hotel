@@ -75,6 +75,14 @@ public class PetService {
         return petRepo.findAll();
     }
 
+    // Поиск по части имени, без учёта регистра: "бар" найдёт "Барсик"
+    public List<Pet> searchByName(String part) {
+        String lower = part.toLowerCase();
+        return petRepo.findAll().stream()
+                .filter(pet -> pet.getName().toLowerCase().contains(lower))
+                .toList();
+    }
+
     public Pet update(Long petId, Long ownerId, String name, Species species, EnclosureSize size) {
         validatePetData(ownerId, name, species, size);
         checkOwnerExists(ownerId);
