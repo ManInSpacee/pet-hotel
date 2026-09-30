@@ -4,7 +4,10 @@ import ru.mirea.project.exception.BusinessRuleException;
 import ru.mirea.project.exception.DataAccessException;
 import ru.mirea.project.model.*;
 import ru.mirea.project.service.*;
+import ru.mirea.project.util.DatabaseExcelDump;
+import ru.mirea.project.util.DatabaseManager;
 
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
@@ -193,7 +196,7 @@ public class ConsoleMenu {
                     case 6 -> filterMenu();
                     case 7 -> sortMenu();
                     case 8 -> showStatistics();
-                    case 9 -> System.out.println("Экспорт пока не реализован");
+                    case 9 -> exportToExcel();
                     default -> System.out.println("Нет такого пункта");
                 }
             } catch (DataAccessException e) {
@@ -474,6 +477,17 @@ public class ConsoleMenu {
             case 1 -> printList(bookingService.sortedByStartDate(), "Бронирований пока нет");
             case 2 -> printList(bookingService.sortedByCreatedAtNewestFirst(), "Бронирований пока нет");
             default -> System.out.println("Нет такого пункта");
+        }
+    }
+
+    // ===================== Экспорт =====================
+
+    private void exportToExcel() {
+        try {
+            Path file = DatabaseExcelDump.export(DatabaseManager.URL, DatabaseManager.USER, DatabaseManager.PASSWORD);
+            System.out.println("Файл создан: " + file);
+        } catch (Exception e) {
+            System.out.println("Ошибка экспорта: " + e.getMessage());
         }
     }
 
