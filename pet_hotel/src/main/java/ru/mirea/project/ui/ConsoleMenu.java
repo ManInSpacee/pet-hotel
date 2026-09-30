@@ -2,15 +2,17 @@ package ru.mirea.project.ui;
 
 import ru.mirea.project.exception.BusinessRuleException;
 import ru.mirea.project.exception.DataAccessException;
-import ru.mirea.project.model.Owner;
-import ru.mirea.project.service.BookingService;
-import ru.mirea.project.service.EnclosureService;
-import ru.mirea.project.service.OwnerService;
-import ru.mirea.project.service.PetService;
+import ru.mirea.project.model.*;
+import ru.mirea.project.service.*;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class ConsoleMenu {
 
@@ -28,24 +30,84 @@ public class ConsoleMenu {
              0. Выход
             """;
     private static final String OWNER_MENU_TEXT = """
-             === ГОСТИНИЦА ДЛЯ ЖИВОТНЫХ === Владельцы ===
+             === Владельцы ===
              1. Добавить владельца
              2. Редактировать владельца
              3. Удалить владельца
              4. Список владельцев
              5. Найти владельца по ID
-             0. Выход
+             0. Назад
             """;
+    private static final String PET_MENU_TEXT = """
+             === Питомцы ===
+             1. Добавить питомца
+             2. Удалить питомца
+             3. Список питомцев
+             4. Питомцы владельца
+             0. Назад
+            """;
+    private static final String ENCLOSURE_MENU_TEXT = """
+             === Вольеры ===
+             1. Добавить вольер
+             2. Редактировать вольер
+             3. Удалить вольер
+             4. Список вольеров
+             0. Назад
+            """;
+    private static final String BOOKING_MENU_TEXT = """
+             === Бронирования ===
+             1. Создать бронирование
+             2. Список бронирований
+             3. Найти бронирование по ID
+             4. Одобрить заявку
+             5. Отклонить заявку
+             6. Отменить бронирование
+             7. Завершить бронирование
+             8. Удалить бронирование
+             0. Назад
+            """;
+    private static final String SEARCH_MENU_TEXT = """
+             === Поиск ===
+             1. Бронирования владельца
+             2. Питомцы по имени
+             0. Назад
+            """;
+    private static final String FILTER_MENU_TEXT = """
+             === Фильтрация бронирований ===
+             1. По статусу
+             2. По периоду дат
+             0. Назад
+            """;
+    private static final String SORT_MENU_TEXT = """
+             === Сортировка бронирований ===
+             1. По дате заезда
+             2. По дате создания (новые сверху)
+             0. Назад
+            """;
+
     private final BookingService bookingService;
     private final OwnerService ownerService;
     private final PetService petService;
     private final EnclosureService enclosureService;
+    private final StatisticsService statisticsService;
     private final Scanner scanner = new Scanner(System.in);
+
+    public ConsoleMenu(BookingService bookingService, OwnerService ownerService, PetService petService,
+                       EnclosureService enclosureService, StatisticsService statisticsService) {
+        this.bookingService = bookingService;
+        this.ownerService = ownerService;
+        this.petService = petService;
+        this.enclosureService = enclosureService;
+        this.statisticsService = statisticsService;
+    }
+
+    // ===================== Чтение ввода =====================
 
     private String readString(String prompt) {
         System.out.print(prompt);
         return scanner.nextLine();
     }
+
     private int readInt(String prompt) {
         while (true) {
             String input = readString(prompt);
@@ -56,6 +118,7 @@ public class ConsoleMenu {
             }
         }
     }
+
     private Long readLong(String prompt) {
         while (true) {
             String input = readString(prompt);
@@ -64,6 +127,30 @@ public class ConsoleMenu {
             } catch (NumberFormatException e) {
                 System.out.println("Ошибка: ID должен содержать только числа в диапазонe от 0 до " + Long.MAX_VALUE);
             }
+        }
+    }
+
+    private LocalDate readDate(String prompt) {
+        while (true) {
+            String input = readString(prompt);
+            try {
+                return LocalDate.parse(input);
+            } catch (DateTimeParseException e) {
+                System.out.println("Ошибка: дата в формате ГГГГ-ММ-ДД, например " + LocalDate.now().plusDays(1));
+            }
+        }
+    }
+
+    // Один метод на все enum: в values передаётся Species.values(), EnclosureSize.values() и т.д.
+    private <E extends Enum<E>> E readEnum(String prompt, E[] values) {
+        while (true) {
+            String input = readString(prompt + Arrays.toString(values) + ": ");
+            for (E value : values) {
+                if (value.name().equalsIgnoreCase(input.trim())) {
+                    return value;
+                }
+            }
+            System.out.println("Ошибка: выберите одно из значений списка");
         }
     }
 
@@ -79,11 +166,60 @@ public class ConsoleMenu {
         }
     }
 
-    public ConsoleMenu(BookingService bookingService, OwnerService ownerService, PetService petService, EnclosureService enclosureService) {
-        this.bookingService = bookingService;
-        this.ownerService = ownerService;
-        this.petService = petService;
-        this.enclosureService = enclosureService;
+    private void printList(List<?> items, String emptyMessage) {
+        if (items.isEmpty()) {
+            System.out.println(emptyMessage);
+            return;
+        }
+        items.forEach(System.out::println);
+    }
+
+    // ===================== Главное меню =====================
+
+    public void run() {
+        while (true) {
+            System.out.println(MAIN_MENU_TEXT);
+            int choice = readInt("Введите номер пункта меню: ");
+            try {
+                switch (choice) {
+                    case 0 -> {
+                        return;
+                    }
+                    case 1 -> ownersMenu();
+                    case 2 -> petsMenu();
+                    case 3 -> enclosuresMenu();
+                    case 4 -> bookingsMenu();
+                    case 5 -> searchMenu();
+                    case 6 -> filterMenu();
+                    case 7 -> sortMenu();
+                    case 8 -> showStatistics();
+                    case 9 -> System.out.println("Экспорт пока не реализован");
+                    default -> System.out.println("Нет такого пункта");
+                }
+            } catch (DataAccessException e) {
+                System.out.println("Ошибка базы данных: " + e.getMessage());
+            }
+        }
+    }
+
+    // ===================== Владельцы =====================
+
+    private void ownersMenu() {
+        while (true) {
+            System.out.println(OWNER_MENU_TEXT);
+            int choice = readInt("Введите номер пункта меню: ");
+            switch (choice) {
+                case 0 -> {
+                    return;
+                }
+                case 1 -> addOwner();
+                case 2 -> editOwner();
+                case 3 -> deleteOwner();
+                case 4 -> printList(ownerService.getAll(), "Владельцев пока нет");
+                case 5 -> findOwner();
+                default -> System.out.println("Нет такого пункта");
+            }
+        }
     }
 
     private void addOwner() {
@@ -105,7 +241,6 @@ public class ConsoleMenu {
             String login = readValid("Введите новый login: ", ownerService::validateLogin);
             String fullName = readValid("Введите новое полное имя: ", ownerService::validateFullName);
             String phone = readValid("Введите новый номер телефона: ", ownerService::validatePhone);
-
             System.out.println("Обновлено: " + ownerService.update(id, login, fullName, phone));
         } catch (BusinessRuleException e) {
             System.out.println(e.getMessage());
@@ -122,15 +257,6 @@ public class ConsoleMenu {
         }
     }
 
-    private void listOwners() {
-        List<Owner> owners = ownerService.getAll();
-        if (owners.isEmpty()) {
-            System.out.println("Владельцев пока нет");
-            return;
-        }
-        owners.forEach(System.out::println);
-    }
-
     private void findOwner() {
         Long id = readLong("Введите ID владельца: ");
         try {
@@ -140,45 +266,223 @@ public class ConsoleMenu {
         }
     }
 
-    private void ownersMenu() {
-        while (true) {
-            System.out.println(OWNER_MENU_TEXT);
-            int choice = readInt("Введите номер пункта меню: ");
+    // ===================== Питомцы =====================
 
+    private void petsMenu() {
+        while (true) {
+            System.out.println(PET_MENU_TEXT);
+            int choice = readInt("Введите номер пункта меню: ");
             switch (choice) {
                 case 0 -> {
                     return;
                 }
-                case 1 -> addOwner();
-                case 2 -> editOwner();
-                case 3 -> deleteOwner();
-                case 4 -> listOwners();
-                case 5 -> findOwner();
+                case 1 -> addPet();
+                case 2 -> deletePet();
+                case 3 -> printList(petService.getAll(), "Питомцев пока нет");
+                case 4 -> petsOfOwner();
                 default -> System.out.println("Нет такого пункта");
             }
         }
     }
 
-
-
-    public void run() {
-        while (true) {
-            System.out.println(MAIN_MENU_TEXT);
-            int choice = readInt("Введите номер пункта меню: ");
-            try {
-                switch (choice) {
-                    case 0 -> {
-                        return;
-                    }
-                    case 1 -> ownersMenu();
-                }
-            } catch (DataAccessException e) {
-                System.out.println("Ошибка базы данных: " + e.getMessage());
-            }
-
-
+    private void addPet() {
+        Long ownerId = readLong("ID владельца: ");
+        String name = readString("Имя питомца: ");
+        Species species = readEnum("Вид ", Species.values());
+        EnclosureSize size = readEnum("Размер ", EnclosureSize.values());
+        try {
+            System.out.println("Создан: " + petService.create(ownerId, name, species, size));
+        } catch (BusinessRuleException e) {
+            System.out.println(e.getMessage());
         }
     }
 
+    private void deletePet() {
+        Long id = readLong("ID питомца: ");
+        try {
+            petService.delete(id);
+            System.out.println("Питомец удалён");
+        } catch (BusinessRuleException e) {
+            System.out.println(e.getMessage());
+        }
+    }
 
+    private void petsOfOwner() {
+        Long ownerId = readLong("ID владельца: ");
+        try {
+            printList(petService.getByOwnerId(ownerId), "У владельца нет питомцев");
+        } catch (BusinessRuleException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    // ===================== Вольеры =====================
+
+    private void enclosuresMenu() {
+        while (true) {
+            System.out.println(ENCLOSURE_MENU_TEXT);
+            int choice = readInt("Введите номер пункта меню: ");
+            switch (choice) {
+                case 0 -> {
+                    return;
+                }
+                case 1 -> addEnclosure();
+                case 2 -> editEnclosure();
+                case 3 -> deleteEnclosure();
+                case 4 -> printList(enclosureService.findAll(), "Вольеров пока нет");
+                default -> System.out.println("Нет такого пункта");
+            }
+        }
+    }
+
+    private void addEnclosure() {
+        int number = readInt("Номер вольера: ");
+        EnclosureSize size = readEnum("Размер ", EnclosureSize.values());
+        try {
+            System.out.println("Создан: " + enclosureService.create(number, size));
+        } catch (BusinessRuleException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void editEnclosure() {
+        Long id = readLong("ID вольера: ");
+        int number = readInt("Новый номер: ");
+        EnclosureSize size = readEnum("Новый размер ", EnclosureSize.values());
+        try {
+            System.out.println("Обновлено: " + enclosureService.update(id, number, size));
+        } catch (BusinessRuleException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void deleteEnclosure() {
+        Long id = readLong("ID вольера: ");
+        try {
+            enclosureService.delete(id);
+            System.out.println("Вольер удалён");
+        } catch (BusinessRuleException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    // ===================== Бронирования =====================
+
+    private void bookingsMenu() {
+        while (true) {
+            System.out.println(BOOKING_MENU_TEXT);
+            int choice = readInt("Введите номер пункта меню: ");
+            switch (choice) {
+                case 0 -> {
+                    return;
+                }
+                case 1 -> createBooking();
+                case 2 -> printList(bookingService.getAll(), "Бронирований пока нет");
+                case 3 -> runWithBookingId(bookingService::getById);
+                case 4 -> runWithBookingId(bookingService::accept);
+                case 5 -> runWithBookingId(bookingService::deny);
+                case 6 -> runWithBookingId(bookingService::cancel);
+                case 7 -> runWithBookingId(bookingService::complete);
+                case 8 -> deleteBooking();
+                default -> System.out.println("Нет такого пункта");
+            }
+        }
+    }
+
+    // Сценарий из проектирования: питомец и даты → свободные вольеры → выбор → create
+    private void createBooking() {
+        Long petId = readLong("ID питомца: ");
+        LocalDate start = readDate("Дата заезда (ГГГГ-ММ-ДД): ");
+        LocalDate end = readDate("Дата выезда (ГГГГ-ММ-ДД): ");
+        try {
+            List<Enclosure> available = bookingService.getAvailableEnclosures(petId, start, end);
+            if (available.isEmpty()) {
+                System.out.println("На эти даты подходящих вольеров нет, попробуйте другие даты");
+                return;
+            }
+            System.out.println("Свободные вольеры:");
+            available.forEach(System.out::println);
+            Long enclosureId = readLong("ID выбранного вольера: ");
+            System.out.println("Создано: " + bookingService.create(petId, enclosureId, start, end));
+        } catch (BusinessRuleException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    // Пункты 3–7 устроены одинаково: спросить ID → вызвать метод сервиса → показать бронь.
+    // Отличается только метод, поэтому он передаётся параметром — как проверка в readValid
+    private void runWithBookingId(Function<Long, Booking> action) {
+        Long id = readLong("ID бронирования: ");
+        try {
+            System.out.println(action.apply(id));
+        } catch (BusinessRuleException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void deleteBooking() {
+        Long id = readLong("ID бронирования: ");
+        try {
+            bookingService.delete(id);
+            System.out.println("Бронирование удалено");
+        } catch (BusinessRuleException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    // ===================== Поиск, фильтры, сортировка =====================
+
+    private void searchMenu() {
+        System.out.println(SEARCH_MENU_TEXT);
+        int choice = readInt("Введите номер пункта меню: ");
+        switch (choice) {
+            case 0 -> {
+                return;
+            }
+            case 1 -> printList(bookingService.findByOwner(readLong("ID владельца: ")), "Ничего не найдено");
+            case 2 -> printList(petService.searchByName(readString("Часть имени: ")), "Ничего не найдено");
+            default -> System.out.println("Нет такого пункта");
+        }
+    }
+
+    private void filterMenu() {
+        System.out.println(FILTER_MENU_TEXT);
+        int choice = readInt("Введите номер пункта меню: ");
+        try {
+            switch (choice) {
+                case 0 -> {
+                    return;
+                }
+                case 1 -> printList(bookingService.filterByStatus(readEnum("Статус ", BookingStatus.values())),
+                        "Ничего не найдено");
+                case 2 -> printList(bookingService.filterByDateRange(readDate("С (ГГГГ-ММ-ДД): "), readDate("По (ГГГГ-ММ-ДД): ")),
+                        "Ничего не найдено");
+                default -> System.out.println("Нет такого пункта");
+            }
+        } catch (BusinessRuleException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void sortMenu() {
+        System.out.println(SORT_MENU_TEXT);
+        int choice = readInt("Введите номер пункта меню: ");
+        switch (choice) {
+            case 0 -> {
+                return;
+            }
+            case 1 -> printList(bookingService.sortedByStartDate(), "Бронирований пока нет");
+            case 2 -> printList(bookingService.sortedByCreatedAtNewestFirst(), "Бронирований пока нет");
+            default -> System.out.println("Нет такого пункта");
+        }
+    }
+
+    // ===================== Статистика =====================
+
+    private void showStatistics() {
+        System.out.println("=== Статистика ===");
+        for (Map.Entry<String, Long> entry : statisticsService.collect().entrySet()) {
+            System.out.println(entry.getKey() + ": " + entry.getValue());
+        }
+    }
 }
