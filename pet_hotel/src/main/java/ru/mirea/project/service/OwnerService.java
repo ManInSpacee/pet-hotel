@@ -2,15 +2,18 @@ package ru.mirea.project.service;
 
 import ru.mirea.project.exception.BusinessRuleException;
 import ru.mirea.project.model.Owner;
+import ru.mirea.project.repository.BookingRepository;
 import ru.mirea.project.repository.OwnerRepository;
 
 import java.util.List;
 
 public class OwnerService {
     private final OwnerRepository ownerRepo;
+    private final BookingRepository bookingRepo;
 
-    public OwnerService (OwnerRepository ownerRepo) {
+    public OwnerService(OwnerRepository ownerRepo, BookingRepository bookingRepo) {
         this.ownerRepo = ownerRepo;
+        this.bookingRepo = bookingRepo;
     }
 
     private void validateOwnerData(String login, String fullName, String phone) {
@@ -41,6 +44,9 @@ public class OwnerService {
 
     public Owner create(String login, String fullName, String phone) {
         validateOwnerData(login, fullName, phone);
+        if (ownerRepo.findByLogin(login).isPresent()) {
+            throw new BusinessRuleException("Владелец с таким логином уже существует");
+        }
         if (ownerRepo.findByPhone(phone).isPresent()) {
             throw new BusinessRuleException("Владелец с таким телефоном уже существует");
         }
@@ -49,10 +55,7 @@ public class OwnerService {
     }
 
     public Owner getById(Long ownerId) {
-        return ownerRepo.findById(ownerId)
-                .orElseThrow(() -> new BusinessRuleException(
-                        "Владелец не найден"
-                ));
+        return ownerRepo.findById(ownerId).orElseThrow(() -> new BusinessRuleException("Владелец не найден"));
     }
 
     public Owner getByPhone(String phone) {
@@ -67,6 +70,17 @@ public class OwnerService {
         validateOwnerData(login, fullName, phone);
         getById(ownerId);
 
+        ownerRepo.findByLogin(login).ifPresent(owner -> {
+            if (!owner.getId().equals(ownerId)) {
+                throw new BusinessRuleException("Владелец с таким логином уже существует");
+            }
+        });
+        ownerRepo.findByPhone(phone).ifPresent(owner -> {
+            if (!owner.getId().equals(ownerId)) {
+                throw new BusinessRuleException("Владелец с таким телефоном уже существует");
+            }
+        });
+
         Owner updatedOwner = new Owner(ownerId, login, fullName, phone);
         boolean updated = ownerRepo.update(updatedOwner);
         if(!updated) {
@@ -76,6 +90,9 @@ public class OwnerService {
     }
     public void delete(Long ownerId) {
         getById(ownerId);
+        if (!bookingRepo.findByOwnerId(ownerId).isEmpty()) {
+            throw new BusinessRuleException("Невозможно удалить владельца с существующими бронированиями");
+        }
         boolean deleted = ownerRepo.deleteById(ownerId);
         if (!deleted) {
             throw new BusinessRuleException("Ошибка при удалении владельца");

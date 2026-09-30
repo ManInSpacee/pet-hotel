@@ -22,6 +22,11 @@ public class Owner {
         this.phone = phone;
     }
 
+    @Override
+    public String toString() {
+        return "[ ID: " + id + ", login: " + login + ", имя: " + fullName + ", телефон: " + phone + "]";
+    }
+
     public Long getId() {
         return id;
     }

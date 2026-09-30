@@ -3,6 +3,7 @@ package ru.mirea.project.service;
 import ru.mirea.project.model.Owner;
 import ru.mirea.project.repository.OwnerRepository;
 import ru.mirea.project.repository.PetRepository;
+import ru.mirea.project.repository.BookingRepository;
 import ru.mirea.project.model.Pet;
 import ru.mirea.project.model.Species;
 import ru.mirea.project.model.EnclosureSize;
@@ -12,10 +13,12 @@ import java.util.List;
 public class PetService {
     private final PetRepository petRepo;
     private final OwnerRepository ownerRepo;
+    private final BookingRepository bookingRepo;
 
-    public PetService (PetRepository petRepo, OwnerRepository ownerRepo) {
+    public PetService(PetRepository petRepo, OwnerRepository ownerRepo, BookingRepository bookingRepo) {
         this.petRepo = petRepo;
         this.ownerRepo = ownerRepo;
+        this.bookingRepo = bookingRepo;
     }
 
     private void validatePetData(Long ownerId, String name, Species species, EnclosureSize size) {
@@ -87,6 +90,9 @@ public class PetService {
 
     public void delete(Long petId) {
         checkPetExists(petId);
+        if (bookingRepo.existsByPetId(petId)) {
+            throw new BusinessRuleException("Невозможно удалить питомца с существующими бронированиями");
+        }
         if(!petRepo.deleteById(petId)) {
             throw new BusinessRuleException("Ошибка при удалении питомца");
         }

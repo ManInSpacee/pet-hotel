@@ -11,4 +11,5 @@ public interface BookingRepository extends Repository<Booking, Long> {
     List<Booking> findByDateRange(LocalDate from, LocalDate to);
     List<Booking >findByStatus(BookingStatus status);
     boolean existsByEnclosureId(Long enclosureId);
+    boolean existsByPetId(Long petId);
 }

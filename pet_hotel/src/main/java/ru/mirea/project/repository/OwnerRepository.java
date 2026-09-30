@@ -6,5 +6,6 @@ import java.util.Optional;
 
 public interface OwnerRepository extends Repository<Owner, Long>
 {
+    Optional<Owner> findByLogin(String login);
     Optional<Owner> findByPhone(String phone);
 }
