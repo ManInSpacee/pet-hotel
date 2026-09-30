@@ -20,6 +20,7 @@ public class JdbcEnclosureRepository implements EnclosureRepository {
     private static final String FIND_BY_ID = "SELECT id, number, size FROM enclosures WHERE id = ?";
     private static final String DELETE_BY_ID = "DELETE FROM enclosures WHERE id = ?";
     private static final String UPDATE = "UPDATE enclosures SET number = ?, size = ? WHERE id = ?";
+    private static final String FIND_BY_NUMBER = "SELECT id, number, size FROM enclosures WHERE number = ?";
 
     @Override
     public Enclosure save(Enclosure entity) {
@@ -118,5 +119,22 @@ public class JdbcEnclosureRepository implements EnclosureRepository {
         int number = rs.getInt("number");
         String size = rs.getString("size");
         return new Enclosure(id, number, EnclosureSize.valueOf(size));
+    }
+
+    @Override
+    public Optional<Enclosure> findByNumber(int number) {
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(FIND_BY_NUMBER);
+        ) {
+            ps.setInt(1, number);
+            try (ResultSet rs = ps.executeQuery();) {
+                if (rs.next()) {
+                    return Optional.of(mapRow(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Ошибка при поиске вольера по номеру: " + e.getMessage(), e);
+        }
+    return Optional.empty();
     }
 }
