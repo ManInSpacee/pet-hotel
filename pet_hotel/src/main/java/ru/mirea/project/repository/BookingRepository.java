@@ -10,4 +10,5 @@ public interface BookingRepository extends Repository<Booking, Long> {
     boolean hasOverlappingBookings(Long enclosureId,  LocalDate startDate, LocalDate endDate);
     List<Booking> findByDateRange(LocalDate from, LocalDate to);
     List<Booking >findByStatus(BookingStatus status);
+    boolean existsByEnclosureId(Long enclosureId);
 }
